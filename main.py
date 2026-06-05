@@ -36,7 +36,7 @@ def render_status(user: User) -> None:
     xp_bar = draw_gauge(user.xp, max_xp)
 
     print("=" * 50)
-    print(f" 🛡️  Lv.{user.level} 용사 상태창 | 💰 {user.gold} Gold")
+    print(f" Lv.{user.level} 상태창 | 💰 {user.gold} Gold")
     print(f" HP: [{hp_bar}] {user.hp}/100")
     print(f" XP: [{xp_bar}] {user.xp}/{max_xp}")
     print("=" * 50)
@@ -58,12 +58,12 @@ def handle_add_quest(quest_repo: QuestRepository) -> None:
     try:
         content = input("➕ 퀘스트 내용을 입력하세요: ").strip()
         Validator.validate_quest_content(content)
-        difficulty = input("🔥 난이도(상/중/하): ").strip()
+        difficulty = input("난이도(상/중/하): ").strip()
         Validator.validate_difficulty(difficulty)
         
         quest_id = str(uuid.uuid4())[:8]
         quest_repo.save_quest(Quest(quest_id, content, difficulty))
-        print("🎉 퀘스트가 성공적으로 등록되었습니다!")
+        print("퀘스트가 성공적으로 등록되었습니다!")
     except (ValueError, Exception) as e:
         print(f"❌ 입력 오류: {e}")
     time.sleep(1)
@@ -160,10 +160,10 @@ def main() -> None:
             if not run_menu_action(menu_input, svcs):
                 break
         except HeroDeadError as e:
-            print(f"\n💀 GAME OVER: {e}\n체력이 모두 소진되었습니다. 다시 힘내보아요!")
+            print(f"\n GAME OVER: {e}\n체력이 모두 소진되었습니다. 다시 힘내보아요!")
             break
         except KeyboardInterrupt:
-            print("\n👋 프로그램을 종료합니다."); sys.exit(0)
+            print("\n 프로그램을 종료합니다."); sys.exit(0)
         except Exception as e:
             print(f"⚠️ 시스템 오류 발생: {e}"); time.sleep(1.5)
 
