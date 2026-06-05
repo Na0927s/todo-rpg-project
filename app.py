@@ -28,16 +28,27 @@ def index():
         "hp": user.hp if user else 100,
         "gold": user.gold if user else 0
     }
+    
     all_quests = quest_repo.find_all_quests()
-    quests_list = [
-        {
+    active_quests = []
+    completed_quests = []
+    
+    for q in all_quests.values():
+        quest_data = {
             "quest_id": q.quest_id,
             "content": q.content,
             "difficulty": q.difficulty,
             "is_completed": q.is_finished()
-        } for q in all_quests.values()
-    ]
-    return render_template('index.html', user_status=user_stats, quests=quests_list)
+        }
+        if quest_data["is_completed"]:
+            completed_quests.append(quest_data)
+        else:
+            active_quests.append(quest_data)
+            
+    return render_template('index.html', 
+                           user_status=user_stats, 
+                           active_quests=active_quests, 
+                           completed_quests=completed_quests)
 
 @app.route('/api/status')
 def get_status():

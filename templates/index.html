@@ -112,6 +112,11 @@
             padding: 20px;
             border-radius: 12px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .quest-section.completed {
+            opacity: 0.8;
         }
 
         table {
@@ -157,11 +162,16 @@
         .btn-primary { background-color: var(--primary-color); }
         .btn-complete { background-color: var(--btn-complete); }
         .btn-delete { background-color: var(--btn-delete); }
-        .btn-disabled { background-color: #ccc; cursor: not-allowed; }
 
         .completed-text {
             color: #888;
             text-decoration: line-through;
+        }
+        
+        .empty-msg {
+            text-align: center;
+            color: #888;
+            padding: 20px;
         }
     </style>
 </head>
@@ -210,7 +220,7 @@
 
         <div class="quest-section">
             <h2>📜 Active Quests</h2>
-            <table id="quest-table">
+            <table id="active-quest-table">
                 <thead>
                     <tr>
                         <th>Content</th>
@@ -218,24 +228,40 @@
                         <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody>
-                    {% for quest in quests %}
+                <tbody id="active-quests-body">
+                    {% for quest in active_quests %}
                     <tr id="quest-{{ quest.quest_id }}">
-                        <td class="quest-content-cell {{ 'completed-text' if quest.is_completed else '' }}">
-                            {{ quest.content }}
-                        </td>
-                        <td>
-                            <span class="badge difficulty-{{ quest.difficulty }}">{{ quest.difficulty }}</span>
-                        </td>
+                        <td class="quest-content-cell">{{ quest.content }}</td>
+                        <td><span class="badge difficulty-{{ quest.difficulty }}">{{ quest.difficulty }}</span></td>
                         <td>
                             <div class="btn-group">
-                                <button class="btn btn-complete {{ 'btn-disabled' if quest.is_completed else '' }}" 
-                                        onclick="completeQuest('{{ quest.quest_id }}')"
-                                        {{ 'disabled' if quest.is_completed else '' }}>
-                                    {{ '완료됨' if quest.is_completed else '완료' }}
-                                </button>
+                                <button class="btn btn-complete" onclick="completeQuest('{{ quest.quest_id }}')">완료</button>
                                 <button class="btn btn-delete" onclick="deleteQuest('{{ quest.quest_id }}')">삭제</button>
                             </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="quest-section completed">
+            <h2>✅ Completed Quests</h2>
+            <table id="completed-quest-table">
+                <thead>
+                    <tr>
+                        <th>Content</th>
+                        <th>Difficulty</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="completed-quests-body">
+                    {% for quest in completed_quests %}
+                    <tr id="quest-{{ quest.quest_id }}">
+                        <td class="quest-content-cell completed-text">{{ quest.content }}</td>
+                        <td><span class="badge difficulty-{{ quest.difficulty }}">{{ quest.difficulty }}</span></td>
+                        <td>
+                            <button class="btn btn-delete" onclick="deleteQuest('{{ quest.quest_id }}')">삭제</button>
                         </td>
                     </tr>
                     {% endfor %}
@@ -250,7 +276,6 @@
             const data = await res.json();
             
             document.getElementById('user-lv-gold').innerText = `Lv. ${data.level} | 💰 ${data.gold}`;
-            
             document.getElementById('hp-label').innerText = `HP (${data.hp} / 100)`;
             document.getElementById('hp-bar').style.width = `${data.hp}%`;
             
@@ -272,7 +297,7 @@
 
             const data = await res.json();
             if (res.ok) {
-                location.reload(); // 간결함을 위해 새로고침 (실시간 DOM 추가도 가능)
+                location.reload();
             } else {
                 alert(data.error);
             }
@@ -285,13 +310,17 @@
             if (res.ok) {
                 alert(data.message);
                 updateStatus();
-                // UI 상태 변경
+                
+                // Active -> Completed 이동
                 const row = document.getElementById(`quest-${questId}`);
                 row.querySelector('.quest-content-cell').classList.add('completed-text');
-                const compBtn = row.querySelector('.btn-complete');
-                compBtn.classList.add('btn-disabled');
-                compBtn.innerText = '완료됨';
-                compBtn.disabled = true;
+                
+                // 완료 버튼 제거
+                const actionCell = row.cells[2];
+                actionCell.innerHTML = `<button class="btn btn-delete" onclick="deleteQuest('${questId}')">삭제</button>`;
+                
+                // 테이블 이동
+                document.getElementById('completed-quests-body').appendChild(row);
             } else {
                 alert(`오류: ${data.error}`);
             }

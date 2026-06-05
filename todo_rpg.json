@@ -2,17 +2,10 @@
     "users": {
         "hero_1": {
             "level": 1,
-            "xp": 20,
+            "xp": 0,
             "hp": 100,
             "gold": 10
         }
     },
-    "quests": {
-        "7a3b80f6": {
-            "quest_id": "7a3b80f6",
-            "content": "111",
-            "difficulty": "중",
-            "is_completed": true
-        }
-    }
+    "quests": {}
 }
