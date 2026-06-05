@@ -81,6 +81,32 @@
         .hp-bar { background-color: var(--hp-color); }
         .xp-bar { background-color: var(--xp-color); }
 
+        .form-section {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+
+        select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+
         .quest-section {
             background: var(--card-bg);
             padding: 20px;
@@ -117,19 +143,18 @@
         .difficulty-하 { background: #e8f5e9; color: #2e7d32; }
 
         .btn {
-            padding: 6px 12px;
+            padding: 8px 16px;
             border: none;
             border-radius: 6px;
             cursor: pointer;
             color: white;
             font-weight: bold;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 0.9em;
             transition: opacity 0.2s;
+            font-size: 0.9em;
         }
 
         .btn:hover { opacity: 0.8; }
+        .btn-primary { background-color: var(--primary-color); }
         .btn-complete { background-color: var(--btn-complete); }
         .btn-delete { background-color: var(--btn-delete); }
         .btn-disabled { background-color: #ccc; cursor: not-allowed; }
@@ -149,30 +174,43 @@
         <div class="status-card">
             <div class="stat-group">
                 <div class="stat-label">LEVEL / GOLD</div>
-                <div class="stat-value">Lv. {{ user_status.level }} | 💰 {{ user_status.gold }}</div>
+                <div id="user-lv-gold" class="stat-value">Lv. {{ user_status.level }} | 💰 {{ user_status.gold }}</div>
             </div>
-            <div></div> <!-- Spacer -->
+            <div></div>
 
             <div class="stat-group">
-                <div class="stat-label">HP ({{ user_status.hp }} / 100)</div>
+                <div id="hp-label" class="stat-label">HP ({{ user_status.hp }} / 100)</div>
                 <div class="progress-container">
-                    <div class="progress-bar hp-bar" style="width: {{ user_status.hp }}%;"></div>
+                    <div id="hp-bar" class="progress-bar hp-bar" style="width: {{ user_status.hp }}%;"></div>
                 </div>
             </div>
 
             <div class="stat-group">
                 {% set max_xp = user_status.level * 100 %}
                 {% set xp_percent = (user_status.xp / max_xp * 100) if max_xp > 0 else 0 %}
-                <div class="stat-label">XP ({{ user_status.xp }} / {{ max_xp }})</div>
+                <div id="xp-label" class="stat-label">XP ({{ user_status.xp }} / {{ max_xp }})</div>
                 <div class="progress-container">
-                    <div class="progress-bar xp-bar" style="width: {{ xp_percent }}%;"></div>
+                    <div id="xp-bar" class="progress-bar xp-bar" style="width: {{ xp_percent }}%;"></div>
                 </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h2>➕ New Quest</h2>
+            <div class="form-group">
+                <input type="text" id="quest-content" placeholder="무엇을 하실 건가요?">
+                <select id="quest-difficulty">
+                    <option value="하">하</option>
+                    <option value="중" selected>중</option>
+                    <option value="상">상</option>
+                </select>
+                <button class="btn btn-primary" onclick="addQuest()">등록</button>
             </div>
         </div>
 
         <div class="quest-section">
             <h2>📜 Active Quests</h2>
-            <table>
+            <table id="quest-table">
                 <thead>
                     <tr>
                         <th>Content</th>
@@ -182,30 +220,95 @@
                 </thead>
                 <tbody>
                     {% for quest in quests %}
-                    <tr>
-                        <td class="{{ 'completed-text' if quest.is_completed else '' }}">
+                    <tr id="quest-{{ quest.quest_id }}">
+                        <td class="quest-content-cell {{ 'completed-text' if quest.is_completed else '' }}">
                             {{ quest.content }}
                         </td>
                         <td>
                             <span class="badge difficulty-{{ quest.difficulty }}">{{ quest.difficulty }}</span>
                         </td>
                         <td>
-                            {% if not quest.is_completed %}
-                            <a href="/complete/{{ quest.quest_id }}" class="btn btn-complete">완료</a>
-                            {% else %}
-                            <span class="btn btn-disabled">완료됨</span>
-                            {% endif %}
-                            <a href="/delete/{{ quest.quest_id }}" class="btn btn-delete" onclick="return confirm('정말 삭제하시겠습니까?')">삭제</a>
+                            <div class="btn-group">
+                                <button class="btn btn-complete {{ 'btn-disabled' if quest.is_completed else '' }}" 
+                                        onclick="completeQuest('{{ quest.quest_id }}')"
+                                        {{ 'disabled' if quest.is_completed else '' }}>
+                                    {{ '완료됨' if quest.is_completed else '완료' }}
+                                </button>
+                                <button class="btn btn-delete" onclick="deleteQuest('{{ quest.quest_id }}')">삭제</button>
+                            </div>
                         </td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="3" style="text-align: center; color: #888;">No quests found. Add some in CLI!</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
+
+    <script>
+        async function updateStatus() {
+            const res = await fetch('/api/status');
+            const data = await res.json();
+            
+            document.getElementById('user-lv-gold').innerText = `Lv. ${data.level} | 💰 ${data.gold}`;
+            
+            document.getElementById('hp-label').innerText = `HP (${data.hp} / 100)`;
+            document.getElementById('hp-bar').style.width = `${data.hp}%`;
+            
+            const maxXP = data.level * 100;
+            const xpPercent = (data.xp / maxXP) * 100;
+            document.getElementById('xp-label').innerText = `XP (${data.xp} / ${maxXP})`;
+            document.getElementById('xp-bar').style.width = `${xpPercent}%`;
+        }
+
+        async function addQuest() {
+            const content = document.getElementById('quest-content').value;
+            const difficulty = document.getElementById('quest-difficulty').value;
+
+            const res = await fetch('/api/quests', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content, difficulty })
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                location.reload(); // 간결함을 위해 새로고침 (실시간 DOM 추가도 가능)
+            } else {
+                alert(data.error);
+            }
+        }
+
+        async function completeQuest(questId) {
+            const res = await fetch(`/api/quests/${questId}/complete`, { method: 'POST' });
+            const data = await res.json();
+            
+            if (res.ok) {
+                alert(data.message);
+                updateStatus();
+                // UI 상태 변경
+                const row = document.getElementById(`quest-${questId}`);
+                row.querySelector('.quest-content-cell').classList.add('completed-text');
+                const compBtn = row.querySelector('.btn-complete');
+                compBtn.classList.add('btn-disabled');
+                compBtn.innerText = '완료됨';
+                compBtn.disabled = true;
+            } else {
+                alert(`오류: ${data.error}`);
+            }
+        }
+
+        async function deleteQuest(questId) {
+            if (!confirm('정말 삭제하시겠습니까?')) return;
+
+            const res = await fetch(`/api/quests/${questId}`, { method: 'DELETE' });
+            const data = await res.json();
+
+            if (res.ok) {
+                document.getElementById(`quest-${questId}`).remove();
+            } else {
+                alert(`오류: ${data.error}`);
+            }
+        }
+    </script>
 </body>
 </html>
