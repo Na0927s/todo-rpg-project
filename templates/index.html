@@ -280,7 +280,14 @@
         </div>
 
         <div class="quest-section">
-            <h2>📜 Active Quests</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2 style="margin: 0;">📜 Active Quests</h2>
+                <select id="sort-quests" onchange="sortQuests()" style="padding: 5px; border-radius: 4px;">
+                    <option value="newest">등록순</option>
+                    <option value="diff-high">난이도 높은 순</option>
+                    <option value="diff-low">난이도 낮은 순</option>
+                </select>
+            </div>
             <div class="table-responsive">
                 <table id="active-quest-table">
                     <thead>
@@ -292,7 +299,7 @@
                     </thead>
                     <tbody id="active-quests-body">
                         {% for quest in active_quests %}
-                        <tr id="quest-{{ quest.quest_id }}">
+                        <tr id="quest-{{ quest.quest_id }}" data-difficulty="{{ quest.difficulty }}" data-index="{{ loop.index }}">
                             <td class="quest-content-cell">{{ quest.content }}</td>
                             <td><span class="badge difficulty-{{ quest.difficulty }}">{{ quest.difficulty }}</span></td>
                             <td>
@@ -321,7 +328,7 @@
                     </thead>
                     <tbody id="completed-quests-body">
                         {% for quest in completed_quests %}
-                        <tr id="quest-{{ quest.quest_id }}">
+                        <tr id="quest-{{ quest.quest_id }}" data-difficulty="{{ quest.difficulty }}" data-index="{{ loop.index }}">
                             <td class="quest-content-cell completed-text">{{ quest.content }}</td>
                             <td><span class="badge difficulty-{{ quest.difficulty }}">{{ quest.difficulty }}</span></td>
                             <td>
@@ -356,12 +363,38 @@
                 if (successCallback) successCallback(data);
             } else {
                 if (data.code === 'HERO_DEAD') {
-                    alert("💀 캐릭터가 사망했습니다! 모든 스탯이 초기화됩니다.");
+                    alert("💀 사망했습니다! 모든 스탯이 초기화됩니다.");
                     location.reload();
                 } else {
                     alert("🚨 " + (data.error || "오류가 발생했습니다."));
                 }
             }
+        }
+
+        function sortQuests() {
+            const sortVal = document.getElementById('sort-quests').value;
+            const diffMap = { '상': 3, '중': 2, '하': 1 };
+            
+            const sortLogic = (a, b) => {
+                const diffA = diffMap[a.dataset.difficulty];
+                const diffB = diffMap[b.dataset.difficulty];
+                const indexA = parseInt(a.dataset.index);
+                const indexB = parseInt(b.dataset.index);
+
+                if (sortVal === 'diff-high') {
+                    return diffB - diffA || indexB - indexA;
+                } else if (sortVal === 'diff-low') {
+                    return diffA - diffB || indexB - indexA;
+                } else { // newest
+                    return indexB - indexA;
+                }
+            };
+
+            ['active-quests-body', 'completed-quests-body'].forEach(id => {
+                const body = document.getElementById(id);
+                const rows = Array.from(body.querySelectorAll('tr'));
+                rows.sort(sortLogic).forEach(row => body.appendChild(row));
+            });
         }
 
         async function buyItem(itemId) {
@@ -408,6 +441,7 @@
                     const actionCell = row.cells[2];
                     actionCell.innerHTML = `<button class="btn btn-delete" onclick="deleteQuest('${questId}')">삭제</button>`;
                     document.getElementById('completed-quests-body').appendChild(row);
+                    sortQuests(); // Sort after moving
                 });
             } catch (err) {
                 alert("🚨 서버와 통신 중 오류가 발생했습니다.");
