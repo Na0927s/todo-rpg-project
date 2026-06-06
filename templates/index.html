@@ -119,10 +119,17 @@
             opacity: 0.8;
         }
 
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
+            min-width: 500px;
         }
 
         th, td {
@@ -148,7 +155,7 @@
         .difficulty-하 { background: #e8f5e9; color: #2e7d32; }
 
         .btn {
-            padding: 8px 16px;
+            padding: 10px 16px;
             border: none;
             border-radius: 6px;
             cursor: pointer;
@@ -156,6 +163,7 @@
             font-weight: bold;
             transition: opacity 0.2s;
             font-size: 0.9em;
+            white-space: nowrap;
         }
 
         .btn:hover { opacity: 0.8; }
@@ -173,6 +181,34 @@
             color: #888;
             padding: 20px;
         }
+
+        /* Mobile Responsive Styles */
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+
+            .status-card {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .form-group {
+                flex-direction: column;
+            }
+
+            input[type="text"], select, .btn {
+                width: 100%;
+            }
+
+            .header h1 {
+                font-size: 1.5em;
+            }
+
+            .stat-value {
+                font-size: 1.1em;
+            }
+        }
     </style>
 </head>
 <body>
@@ -186,7 +222,6 @@
                 <div class="stat-label">LEVEL / GOLD</div>
                 <div id="user-lv-gold" class="stat-value">Lv. {{ user_status.level }} | 💰 {{ user_status.gold }}</div>
             </div>
-            <div></div>
 
             <div class="stat-group">
                 <div id="hp-label" class="stat-label">HP ({{ user_status.hp }} / 100)</div>
@@ -207,26 +242,28 @@
 
         <div class="quest-section">
             <h2>🛒 Gold Shop</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Item</th>
-                        <th>Price</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item_id, item in shop_items.items() %}
-                    <tr>
-                        <td>{{ item.name }}</td>
-                        <td>💰 {{ item.price }}</td>
-                        <td>
-                            <button class="btn btn-primary" onclick="buyItem('{{ item_id }}')">구매</button>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Price</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item_id, item in shop_items.items() %}
+                        <tr>
+                            <td>{{ item.name }}</td>
+                            <td>💰 {{ item.price }}</td>
+                            <td>
+                                <button class="btn btn-primary" onclick="buyItem('{{ item_id }}')">구매</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <div class="form-section">
@@ -244,53 +281,57 @@
 
         <div class="quest-section">
             <h2>📜 Active Quests</h2>
-            <table id="active-quest-table">
-                <thead>
-                    <tr>
-                        <th>Content</th>
-                        <th>Difficulty</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="active-quests-body">
-                    {% for quest in active_quests %}
-                    <tr id="quest-{{ quest.quest_id }}">
-                        <td class="quest-content-cell">{{ quest.content }}</td>
-                        <td><span class="badge difficulty-{{ quest.difficulty }}">{{ quest.difficulty }}</span></td>
-                        <td>
-                            <div class="btn-group">
-                                <button class="btn btn-complete" onclick="completeQuest('{{ quest.quest_id }}')">완료</button>
-                                <button class="btn btn-delete" onclick="deleteQuest('{{ quest.quest_id }}')">삭제</button>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table id="active-quest-table">
+                    <thead>
+                        <tr>
+                            <th>Content</th>
+                            <th>Difficulty</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="active-quests-body">
+                        {% for quest in active_quests %}
+                        <tr id="quest-{{ quest.quest_id }}">
+                            <td class="quest-content-cell">{{ quest.content }}</td>
+                            <td><span class="badge difficulty-{{ quest.difficulty }}">{{ quest.difficulty }}</span></td>
+                            <td>
+                                <div class="btn-group">
+                                    <button class="btn btn-complete" onclick="completeQuest('{{ quest.quest_id }}')">완료</button>
+                                    <button class="btn btn-delete" onclick="deleteQuest('{{ quest.quest_id }}')">삭제</button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <div class="quest-section completed">
             <h2>✅ Completed Quests</h2>
-            <table id="completed-quest-table">
-                <thead>
-                    <tr>
-                        <th>Content</th>
-                        <th>Difficulty</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="completed-quests-body">
-                    {% for quest in completed_quests %}
-                    <tr id="quest-{{ quest.quest_id }}">
-                        <td class="quest-content-cell completed-text">{{ quest.content }}</td>
-                        <td><span class="badge difficulty-{{ quest.difficulty }}">{{ quest.difficulty }}</span></td>
-                        <td>
-                            <button class="btn btn-delete" onclick="deleteQuest('{{ quest.quest_id }}')">삭제</button>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table id="completed-quest-table">
+                    <thead>
+                        <tr>
+                            <th>Content</th>
+                            <th>Difficulty</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="completed-quests-body">
+                        {% for quest in completed_quests %}
+                        <tr id="quest-{{ quest.quest_id }}">
+                            <td class="quest-content-cell completed-text">{{ quest.content }}</td>
+                            <td><span class="badge difficulty-{{ quest.difficulty }}">{{ quest.difficulty }}</span></td>
+                            <td>
+                                <button class="btn btn-delete" onclick="deleteQuest('{{ quest.quest_id }}')">삭제</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
