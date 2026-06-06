@@ -205,6 +205,30 @@
             </div>
         </div>
 
+        <div class="quest-section">
+            <h2>🛒 Gold Shop</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Price</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item_id, item in shop_items.items() %}
+                    <tr>
+                        <td>{{ item.name }}</td>
+                        <td>💰 {{ item.price }}</td>
+                        <td>
+                            <button class="btn btn-primary" onclick="buyItem('{{ item_id }}')">구매</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
         <div class="form-section">
             <h2>➕ New Quest</h2>
             <div class="form-group">
@@ -283,6 +307,22 @@
             const xpPercent = (data.xp / maxXP) * 100;
             document.getElementById('xp-label').innerText = `XP (${data.xp} / ${maxXP})`;
             document.getElementById('xp-bar').style.width = `${xpPercent}%`;
+        }
+
+        async function buyItem(itemId) {
+            const res = await fetch('/api/shop/buy', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ item_id: itemId })
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                alert(data.message);
+                updateStatus();
+            } else {
+                alert(`구매 실패: ${data.error}`);
+            }
         }
 
         async function addQuest() {

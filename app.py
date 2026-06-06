@@ -3,6 +3,7 @@ from flask import Flask, render_template, request, jsonify
 from src.repositories.UserRepository import UserRepository
 from src.repositories.QuestRepository import QuestRepository
 from src.services.RpgService import RpgService
+from src.services.ShopService import ShopService
 from src.services.Validator import Validator
 from src.models.quest import Quest
 from src.exceptions.GameExceptions import HeroDeadError, InsufficientGoldError
@@ -17,6 +18,7 @@ DB_PATH = "todo_rpg.json"
 user_repo = UserRepository(DB_PATH)
 quest_repo = QuestRepository(DB_PATH)
 rpg_service = RpgService(user_repo, quest_repo)
+shop_service = ShopService(user_repo)
 
 @app.route('/')
 def index():
@@ -48,7 +50,8 @@ def index():
     return render_template('index.html', 
                            user_status=user_stats, 
                            active_quests=active_quests, 
-                           completed_quests=completed_quests)
+                           completed_quests=completed_quests,
+                           shop_items=shop_service.get_items())
 
 @app.route('/api/status')
 def get_status():
@@ -60,6 +63,20 @@ def get_status():
         "hp": user.hp if user else 100,
         "gold": user.gold if user else 0
     })
+
+@app.route('/api/shop/buy', methods=['POST'])
+def buy_item():
+    user_id = "hero_1"
+    data = request.json
+    item_id = data.get('item_id')
+    
+    try:
+        item_name = shop_service.buy_item(user_id, item_id)
+        return jsonify({"message": f"'{item_name}' 구매 완료! 즐거운 시간 되세요."})
+    except InsufficientGoldError as e:
+        return jsonify({"error": str(e)}), 403
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
 @app.route('/api/quests', methods=['POST'])
 def create_quest():
