@@ -74,7 +74,7 @@ def buy_item():
         item_name = shop_service.buy_item(user_id, item_id)
         return jsonify({"message": f"'{item_name}' 구매 완료! 즐거운 시간 되세요."})
     except InsufficientGoldError as e:
-        return jsonify({"error": str(e)}), 403
+        return jsonify({"error": str(e), "code": "INSUFFICIENT_GOLD"}), 403
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
@@ -101,7 +101,14 @@ def create_quest():
             "is_completed": False
         }}), 201
     except ValueError as e:
-        return jsonify({"error": str(e)}), 400
+        return jsonify({"error": str(e), "code": "VALIDATION_ERROR"}), 400
+    except Exception as e:
+        return jsonify({"error": "퀘스트 등록 중 오류가 발생했습니다."}), 400
+
+from src.models.user import User
+from src.exceptions.GameExceptions import HeroDeadError, InsufficientGoldError
+
+# ... (rest of imports and setup)
 
 @app.route('/api/quests/<quest_id>/complete', methods=['POST'])
 def complete_quest(quest_id):
@@ -109,8 +116,11 @@ def complete_quest(quest_id):
     try:
         rpg_service.complete_quest(user_id, quest_id)
         return jsonify({"message": "퀘스트 완료! 보상이 지급되었습니다."})
-    except HeroDeadError:
-        return jsonify({"error": "캐릭터가 사망했습니다! HP를 회복하세요."}), 403
+    except HeroDeadError as e:
+        # 캐릭터 사망 시 스탯 초기화 로직 추가
+        reset_user = User()
+        user_repo.save_user(user_id, reset_user)
+        return jsonify({"error": str(e), "code": "HERO_DEAD"}), 403
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
@@ -120,7 +130,7 @@ def delete_quest(quest_id):
         quest_repo.delete_quest(quest_id)
         return jsonify({"message": "퀘스트가 삭제되었습니다."})
     except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        return jsonify({"error": "퀘스트 삭제 중 오류가 발생했습니다."}), 400
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

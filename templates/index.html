@@ -309,19 +309,33 @@
             document.getElementById('xp-bar').style.width = `${xpPercent}%`;
         }
 
-        async function buyItem(itemId) {
-            const res = await fetch('/api/shop/buy', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ item_id: itemId })
-            });
+        async function handleResponse(res, successCallback) {
             const data = await res.json();
-
             if (res.ok) {
-                alert(data.message);
-                updateStatus();
+                if (successCallback) successCallback(data);
             } else {
-                alert(`구매 실패: ${data.error}`);
+                if (data.code === 'HERO_DEAD') {
+                    alert("💀 캐릭터가 사망했습니다! 모든 스탯이 초기화됩니다.");
+                    location.reload();
+                } else {
+                    alert("🚨 " + (data.error || "오류가 발생했습니다."));
+                }
+            }
+        }
+
+        async function buyItem(itemId) {
+            try {
+                const res = await fetch('/api/shop/buy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ item_id: itemId })
+                });
+                await handleResponse(res, (data) => {
+                    alert(data.message);
+                    updateStatus();
+                });
+            } catch (err) {
+                alert("🚨 서버와 통신 중 오류가 발생했습니다.");
             }
         }
 
@@ -329,53 +343,46 @@
             const content = document.getElementById('quest-content').value;
             const difficulty = document.getElementById('quest-difficulty').value;
 
-            const res = await fetch('/api/quests', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ content, difficulty })
-            });
-
-            const data = await res.json();
-            if (res.ok) {
-                location.reload();
-            } else {
-                alert(data.error);
+            try {
+                const res = await fetch('/api/quests', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content, difficulty })
+                });
+                await handleResponse(res, () => location.reload());
+            } catch (err) {
+                alert("🚨 서버와 통신 중 오류가 발생했습니다.");
             }
         }
 
         async function completeQuest(questId) {
-            const res = await fetch(`/api/quests/${questId}/complete`, { method: 'POST' });
-            const data = await res.json();
-            
-            if (res.ok) {
-                alert(data.message);
-                updateStatus();
-                
-                // Active -> Completed 이동
-                const row = document.getElementById(`quest-${questId}`);
-                row.querySelector('.quest-content-cell').classList.add('completed-text');
-                
-                // 완료 버튼 제거
-                const actionCell = row.cells[2];
-                actionCell.innerHTML = `<button class="btn btn-delete" onclick="deleteQuest('${questId}')">삭제</button>`;
-                
-                // 테이블 이동
-                document.getElementById('completed-quests-body').appendChild(row);
-            } else {
-                alert(`오류: ${data.error}`);
+            try {
+                const res = await fetch(`/api/quests/${questId}/complete`, { method: 'POST' });
+                await handleResponse(res, (data) => {
+                    alert(data.message);
+                    updateStatus();
+                    
+                    const row = document.getElementById(`quest-${questId}`);
+                    row.querySelector('.quest-content-cell').classList.add('completed-text');
+                    const actionCell = row.cells[2];
+                    actionCell.innerHTML = `<button class="btn btn-delete" onclick="deleteQuest('${questId}')">삭제</button>`;
+                    document.getElementById('completed-quests-body').appendChild(row);
+                });
+            } catch (err) {
+                alert("🚨 서버와 통신 중 오류가 발생했습니다.");
             }
         }
 
         async function deleteQuest(questId) {
             if (!confirm('정말 삭제하시겠습니까?')) return;
 
-            const res = await fetch(`/api/quests/${questId}`, { method: 'DELETE' });
-            const data = await res.json();
-
-            if (res.ok) {
-                document.getElementById(`quest-${questId}`).remove();
-            } else {
-                alert(`오류: ${data.error}`);
+            try {
+                const res = await fetch(`/api/quests/${questId}`, { method: 'DELETE' });
+                await handleResponse(res, () => {
+                    document.getElementById(`quest-${questId}`).remove();
+                });
+            } catch (err) {
+                alert("🚨 서버와 통신 중 오류가 발생했습니다.");
             }
         }
     </script>
