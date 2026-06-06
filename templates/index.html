@@ -6,7 +6,7 @@
     <title>To-Do RPG Dashboard</title>
     <style>
         :root {
-            --bg-color: #f4f7f6;
+            --bg-color: #f0f2f5;
             --card-bg: #ffffff;
             --primary-color: #4a90e2;
             --hp-color: #ff4d4d;
@@ -14,21 +14,24 @@
             --text-color: #333;
             --btn-complete: #28a745;
             --btn-delete: #dc3545;
+            --border-radius: 12px;
+            --spacing: 20px;
         }
+
+        * { box-sizing: border-box; }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
+            padding: var(--spacing);
         }
 
         .container {
             width: 100%;
-            max-width: 800px;
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
         .header {
@@ -36,118 +39,136 @@
             margin-bottom: 30px;
         }
 
-        .status-card {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
+        /* Responsive Grid System */
+        .dashboard-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
+            grid-template-columns: 1fr;
+            gap: var(--spacing);
+            align-items: start;
         }
 
-        .stat-group {
+        @media (min-width: 992px) {
+            .dashboard-grid {
+                grid-template-columns: 1.2fr 1fr;
+            }
+        }
+
+        .column {
             display: flex;
             flex-direction: column;
+            gap: var(--spacing);
         }
 
-        .stat-label {
-            font-weight: bold;
-            margin-bottom: 5px;
-            font-size: 0.9em;
-            color: #666;
+        /* Generic Card Style */
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
 
-        .stat-value {
-            font-size: 1.2em;
-            font-weight: bold;
+        .card h2 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
         }
+
+        /* Status Card */
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        @media (min-width: 480px) {
+            .status-grid { grid-template-columns: 1fr 1fr; }
+        }
+
+        .stat-group { display: flex; flex-direction: column; }
+        .stat-label { font-weight: bold; font-size: 0.85em; color: #666; margin-bottom: 5px; }
+        .stat-value { font-size: 1.1em; font-weight: bold; }
 
         .progress-container {
             width: 100%;
-            background-color: #e0e0e0;
+            background-color: #e9ecef;
             border-radius: 10px;
-            height: 20px;
+            height: 12px;
             overflow: hidden;
             margin-top: 5px;
         }
 
-        .progress-bar {
-            height: 100%;
-            transition: width 0.3s ease;
-        }
-
+        .progress-bar { height: 100%; transition: width 0.4s ease; }
         .hp-bar { background-color: var(--hp-color); }
         .xp-bar { background-color: var(--xp-color); }
 
-        .form-section {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-        }
-
+        /* Quest Form */
         .form-group {
             display: flex;
+            flex-direction: column;
             gap: 10px;
         }
 
-        input[type="text"] {
-            flex-grow: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
+        @media (min-width: 600px) {
+            .form-group { flex-direction: row; }
         }
 
-        select {
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-        }
-
-        .quest-section {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-        }
-
-        .quest-section.completed {
-            opacity: 0.8;
-        }
-
-        .table-responsive {
-            width: 100%;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-            min-width: 500px;
-        }
-
-        th, td {
-            text-align: left;
+        input[type="text"], select {
             padding: 12px;
-            border-bottom: 1px solid #eee;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
         }
 
-        th {
-            background-color: #f8f9fa;
-            color: #555;
+        input[type="text"] { flex-grow: 1; }
+
+        /* List Items (Replacing Tables) */
+        .item-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .list-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .list-info {
+            flex: 1;
+            min-width: 200px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .list-actions {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+            justify-content: flex-end;
+        }
+
+        @media (min-width: 480px) {
+            .list-actions { width: auto; }
         }
 
         .badge {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.8em;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75em;
             font-weight: bold;
+            text-transform: uppercase;
         }
 
         .difficulty-상 { background: #ffebee; color: #c62828; }
@@ -155,189 +176,156 @@
         .difficulty-하 { background: #e8f5e9; color: #2e7d32; }
 
         .btn {
-            padding: 10px 16px;
+            padding: 12px 20px;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             color: white;
             font-weight: bold;
-            transition: opacity 0.2s;
-            font-size: 0.9em;
-            white-space: nowrap;
+            transition: transform 0.1s, opacity 0.2s;
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .btn:hover { opacity: 0.8; }
+        .btn:active { transform: scale(0.98); }
+        .btn:hover { opacity: 0.9; }
         .btn-primary { background-color: var(--primary-color); }
         .btn-complete { background-color: var(--btn-complete); }
         .btn-delete { background-color: var(--btn-delete); }
 
         .completed-text {
-            color: #888;
+            color: #adb5bd;
             text-decoration: line-through;
         }
-        
-        .empty-msg {
-            text-align: center;
-            color: #888;
-            padding: 20px;
-        }
 
-        /* Mobile Responsive Styles */
-        @media (max-width: 600px) {
-            body {
-                padding: 10px;
-            }
+        .quest-section.completed { opacity: 0.85; }
 
-            .status-card {
-                grid-template-columns: 1fr;
-                gap: 15px;
-            }
-
-            .form-group {
-                flex-direction: column;
-            }
-
-            input[type="text"], select, .btn {
-                width: 100%;
-            }
-
-            .header h1 {
-                font-size: 1.5em;
-            }
-
-            .stat-value {
-                font-size: 1.1em;
-            }
+        select#sort-quests {
+            font-size: 0.85rem;
+            padding: 8px;
+            border-radius: 6px;
+            background: #fff;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎮 To-Do RPG Dashboard</h1>
+            <h1>🎮 To-Do RPG</h1>
         </div>
 
-        <div class="status-card">
-            <div class="stat-group">
-                <div class="stat-label">LEVEL / GOLD</div>
-                <div id="user-lv-gold" class="stat-value">Lv. {{ user_status.level }} | 💰 {{ user_status.gold }}</div>
-            </div>
+        <div class="dashboard-grid">
+            <!-- Left Column: Dashboard & Active Quests -->
+            <div class="column">
+                <!-- Status Dashboard -->
+                <div class="card">
+                    <h2>📊 Player Status</h2>
+                    <div class="status-grid">
+                        <div class="stat-group">
+                            <div class="stat-label">LEVEL / GOLD</div>
+                            <div id="user-lv-gold" class="stat-value">Lv. {{ user_status.level }} | 💰 {{ user_status.gold }}</div>
+                        </div>
+                        <div class="stat-group"></div> <!-- Spacer for grid -->
+                        
+                        <div class="stat-group">
+                            <div id="hp-label" class="stat-label">HP ({{ user_status.hp }} / 100)</div>
+                            <div class="progress-container">
+                                <div id="hp-bar" class="progress-bar hp-bar" style="width: {{ user_status.hp }}%;"></div>
+                            </div>
+                        </div>
 
-            <div class="stat-group">
-                <div id="hp-label" class="stat-label">HP ({{ user_status.hp }} / 100)</div>
-                <div class="progress-container">
-                    <div id="hp-bar" class="progress-bar hp-bar" style="width: {{ user_status.hp }}%;"></div>
+                        <div class="stat-group">
+                            {% set max_xp = user_status.level * 100 %}
+                            {% set xp_percent = (user_status.xp / max_xp * 100) if max_xp > 0 else 0 %}
+                            <div id="xp-label" class="stat-label">XP ({{ user_status.xp }} / {{ max_xp }})</div>
+                            <div class="progress-container">
+                                <div id="xp-bar" class="progress-bar xp-bar" style="width: {{ xp_percent }}%;"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="stat-group">
-                {% set max_xp = user_status.level * 100 %}
-                {% set xp_percent = (user_status.xp / max_xp * 100) if max_xp > 0 else 0 %}
-                <div id="xp-label" class="stat-label">XP ({{ user_status.xp }} / {{ max_xp }})</div>
-                <div class="progress-container">
-                    <div id="xp-bar" class="progress-bar xp-bar" style="width: {{ xp_percent }}%;"></div>
+                <!-- New Quest Form -->
+                <div class="card">
+                    <h2>➕ New Quest</h2>
+                    <div class="form-group">
+                        <input type="text" id="quest-content" placeholder="What's your goal?">
+                        <select id="quest-difficulty">
+                            <option value="하">하</option>
+                            <option value="중" selected>중</option>
+                            <option value="상">상</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="addQuest()">등록</button>
+                    </div>
                 </div>
-            </div>
-        </div>
 
-        <div class="quest-section">
-            <h2>🛒 Gold Shop</h2>
-            <div class="table-responsive">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Item</th>
-                            <th>Price</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item_id, item in shop_items.items() %}
-                        <tr>
-                            <td>{{ item.name }}</td>
-                            <td>💰 {{ item.price }}</td>
-                            <td>
-                                <button class="btn btn-primary" onclick="buyItem('{{ item_id }}')">구매</button>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="form-section">
-            <h2>➕ New Quest</h2>
-            <div class="form-group">
-                <input type="text" id="quest-content" placeholder="무엇을 하실 건가요?">
-                <select id="quest-difficulty">
-                    <option value="하">하</option>
-                    <option value="중" selected>중</option>
-                    <option value="상">상</option>
-                </select>
-                <button class="btn btn-primary" onclick="addQuest()">등록</button>
-            </div>
-        </div>
-
-        <div class="quest-section">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h2 style="margin: 0;">📜 Active Quests</h2>
-                <select id="sort-quests" onchange="sortQuests()" style="padding: 5px; border-radius: 4px;">
-                    <option value="newest">등록순</option>
-                    <option value="diff-high">난이도 높은 순</option>
-                    <option value="diff-low">난이도 낮은 순</option>
-                </select>
-            </div>
-            <div class="table-responsive">
-                <table id="active-quest-table">
-                    <thead>
-                        <tr>
-                            <th>Content</th>
-                            <th>Difficulty</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="active-quests-body">
+                <!-- Active Quests -->
+                <div class="card quest-section">
+                    <h2>
+                        <span>📜 Active Quests</span>
+                        <select id="sort-quests" onchange="sortQuests()">
+                            <option value="newest">등록순</option>
+                            <option value="diff-high">난이도↑</option>
+                            <option value="diff-low">난이도↓</option>
+                        </select>
+                    </h2>
+                    <div id="active-quests-body" class="item-list">
                         {% for quest in active_quests %}
-                        <tr id="quest-{{ quest.quest_id }}" data-difficulty="{{ quest.difficulty }}" data-index="{{ loop.index }}">
-                            <td class="quest-content-cell">{{ quest.content }}</td>
-                            <td><span class="badge difficulty-{{ quest.difficulty }}">{{ quest.difficulty }}</span></td>
-                            <td>
-                                <div class="btn-group">
-                                    <button class="btn btn-complete" onclick="completeQuest('{{ quest.quest_id }}')">완료</button>
-                                    <button class="btn btn-delete" onclick="deleteQuest('{{ quest.quest_id }}')">삭제</button>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="quest-section completed">
-            <h2>✅ Completed Quests</h2>
-            <div class="table-responsive">
-                <table id="completed-quest-table">
-                    <thead>
-                        <tr>
-                            <th>Content</th>
-                            <th>Difficulty</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="completed-quests-body">
-                        {% for quest in completed_quests %}
-                        <tr id="quest-{{ quest.quest_id }}" data-difficulty="{{ quest.difficulty }}" data-index="{{ loop.index }}">
-                            <td class="quest-content-cell completed-text">{{ quest.content }}</td>
-                            <td><span class="badge difficulty-{{ quest.difficulty }}">{{ quest.difficulty }}</span></td>
-                            <td>
+                        <div id="quest-{{ quest.quest_id }}" class="list-row" data-difficulty="{{ quest.difficulty }}" data-index="{{ loop.index }}">
+                            <div class="list-info">
+                                <span class="badge difficulty-{{ quest.difficulty }}">{{ quest.difficulty }}</span>
+                                <span class="quest-content-cell">{{ quest.content }}</span>
+                            </div>
+                            <div class="list-actions">
+                                <button class="btn btn-complete" onclick="completeQuest('{{ quest.quest_id }}')">완료</button>
                                 <button class="btn btn-delete" onclick="deleteQuest('{{ quest.quest_id }}')">삭제</button>
-                            </td>
-                        </tr>
+                            </div>
+                        </div>
                         {% endfor %}
-                    </tbody>
-                </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Shop & History -->
+            <div class="column">
+                <!-- Gold Shop -->
+                <div class="card">
+                    <h2>🛒 Gold Shop</h2>
+                    <div class="item-list">
+                        {% for item_id, item in shop_items.items() %}
+                        <div class="list-row">
+                            <div class="list-info">
+                                <span>{{ item.name }}</span>
+                                <span style="font-weight: bold; color: #f39c12;">💰 {{ item.price }}</span>
+                            </div>
+                            <div class="list-actions">
+                                <button class="btn btn-primary" onclick="buyItem('{{ item_id }}')">구매</button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Completed Quests -->
+                <div class="card quest-section completed">
+                    <h2>✅ History</h2>
+                    <div id="completed-quests-body" class="item-list">
+                        {% for quest in completed_quests %}
+                        <div id="quest-{{ quest.quest_id }}" class="list-row" data-difficulty="{{ quest.difficulty }}" data-index="{{ loop.index }}">
+                            <div class="list-info">
+                                <span class="badge difficulty-{{ quest.difficulty }}">{{ quest.difficulty }}</span>
+                                <span class="quest-content-cell completed-text">{{ quest.content }}</span>
+                            </div>
+                            <div class="list-actions">
+                                <button class="btn btn-delete" onclick="deleteQuest('{{ quest.quest_id }}')">삭제</button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -392,8 +380,8 @@
 
             ['active-quests-body', 'completed-quests-body'].forEach(id => {
                 const body = document.getElementById(id);
-                const rows = Array.from(body.querySelectorAll('tr'));
-                rows.sort(sortLogic).forEach(row => body.appendChild(row));
+                const items = Array.from(body.querySelectorAll('.list-row'));
+                items.sort(sortLogic).forEach(item => body.appendChild(item));
             });
         }
 
@@ -436,12 +424,12 @@
                     alert(data.message);
                     updateStatus();
                     
-                    const row = document.getElementById(`quest-${questId}`);
-                    row.querySelector('.quest-content-cell').classList.add('completed-text');
-                    const actionCell = row.cells[2];
-                    actionCell.innerHTML = `<button class="btn btn-delete" onclick="deleteQuest('${questId}')">삭제</button>`;
-                    document.getElementById('completed-quests-body').appendChild(row);
-                    sortQuests(); // Sort after moving
+                    const item = document.getElementById(`quest-${questId}`);
+                    item.querySelector('.quest-content-cell').classList.add('completed-text');
+                    const actions = item.querySelector('.list-actions');
+                    actions.innerHTML = `<button class="btn btn-delete" onclick="deleteQuest('${questId}')">삭제</button>`;
+                    document.getElementById('completed-quests-body').appendChild(item);
+                    sortQuests();
                 });
             } catch (err) {
                 alert("🚨 서버와 통신 중 오류가 발생했습니다.");
